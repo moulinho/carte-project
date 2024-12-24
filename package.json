@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"next dev\"  \"json-server --watch src/app/db/datas.json --port 8000\"",
-    "build": "next build",
+    "build": "concurrently \"next build\"  \"json-server --watch src/app/db/datas.json --port 8000\"",
     "start": "next start",
     "lint": "next lint",
     "server": "json-server --watch src/app/db/datas.json --port 8000"
