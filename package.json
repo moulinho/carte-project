@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"next dev\"  \"json-server --watch src/app/db/datas.json --port 8000\"",
-    "build": "concurrently \"next build\"  \"json-server --watch src/app/db/datas.json --port 8000\"",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "server": "json-server --watch src/app/db/datas.json --port 8000"

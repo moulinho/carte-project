@@ -1,11 +1,19 @@
+"use client";
+import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Creative_writing from "/public/Creative_writing.gif";
+import Datas from "./db/datas.json";
 
 export default function Home() {
+  // useEffect to store on component mount
+  useEffect(() => {
+    localStorage.setItem("carte", JSON.stringify(Datas.cards));
+  }, []);
+
   return (
-    <div className="mx-auto  my-48 lg:w-full lg:max-w-md lg:flex-shrink-0">
-      <div className="rounded-2xl bg-gray-50 py-10  ring-1 ring-inset ring-gray-900/5 lg:flex lg:flex-col lg:justify-center lg:py-16">
+    <div className="mx-auto my-48 lg:w-full lg:max-w-md lg:flex-shrink-0">
+      <div className="rounded-2xl bg-gray-50 py-10 ring-1 ring-inset ring-gray-900/5 lg:flex lg:flex-col lg:justify-center lg:py-16">
         <div className="mx-auto max-w-xs">
           <Image
             src={Creative_writing}
@@ -13,11 +21,11 @@ export default function Home() {
             width={300}
             height={300}
           />
-          <p className="mt-6  items-baseline justify-center gap-x-2  text-2xl text-gray-700">
+          <p className="mt-6 items-baseline justify-center gap-x-2 text-2xl text-gray-700">
             Laissez libre cours à votre imagination et faites passer vos
-            messages de manière{" "}
+            messages de manière
           </p>
-          <p className="text-3xl text-center font-bold  text-gray-900">
+          <p className="text-3xl text-center font-bold text-gray-900">
             inoubliable !
           </p>
           <Link

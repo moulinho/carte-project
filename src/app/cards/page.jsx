@@ -28,16 +28,22 @@ export default function CardView() {
   const [error, setError] = useState(null);
 
   const getCards = () => {
-    fetch("http://localhost:8000/cards")
-      .then((resultat) => resultat.json())
-      .then((data) => {
-        setcards(data);
-        isPending(false);
-      })
-      .catch((err) => {
-        setIsPending(false);
-        setError(err.message);
-      });
+    const result = JSON.parse(localStorage.getItem("carte"));
+    if (result) {
+      setcards(result);
+      setIsPending(false);
+
+    }
+    // fetch("http://localhost:8000/cards")
+    //   .then((resultat) => resultat.json())
+    //   .then((data) => {
+    //     setcards(data);
+    //     isPending(false);
+    //   })
+    //   .catch((err) => {
+    //     setIsPending(false);
+    //     setError(err.message);
+    //   });
   };
 
   useEffect(() => {

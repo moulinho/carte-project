@@ -14,13 +14,12 @@ export default function AddCard({ handleCloseModal }) {
   });
 
   useEffect(() => {
-    fetch("http://localhost:8000/cards")
-      .then((response) => response.json())
-      .then((data) => {
-        const nextId = data.length ? data[data.length - 1].id + 1 : 1;
-        setFormData((prevData) => ({ ...prevData, id: nextId }));
-      })
-      .catch((error) => console.error("Error fetching :", error));
+    const result = JSON.parse(localStorage.getItem("carte"));
+
+    if (result) {
+      const lastCard = result.length ? result[result.length - 1].id + 1 : 1;
+      setFormData((prevData) => ({ ...prevData, id: lastCard }));
+    }
   }, []);
 
   const handleChange = (e) => {
@@ -41,20 +40,24 @@ export default function AddCard({ handleCloseModal }) {
     };
 
     // setFormData(updatedFormData);
+    const result = JSON.parse(localStorage.getItem("carte"));
 
-    fetch("http://localhost:8000/cards", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedFormData),
-    })
-      .then((response) => response.json())
-      // .then((result) => console.log("Result:", result))
-      .catch((error) => console.error("Error:", error));
 
-    // console.log(updatedFormData);
-    // setCurrentId(currentId + 1);
+    localStorage.setItem("carte", JSON.stringify([...result, updatedFormData]));
+
+    // fetch("http://localhost:8000/cards", {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify(updatedFormData),
+    // })
+    //   .then((response) => response.json())
+    //   // .then((result) => console.log("Result:", result))
+    //   .catch((error) => console.error("Error:", error));
+
+    // // console.log(updatedFormData);
+    // // setCurrentId(currentId + 1);
     handleCloseModal(false);
   };
 
