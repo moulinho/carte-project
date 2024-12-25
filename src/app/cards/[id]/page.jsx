@@ -7,7 +7,6 @@ import { ArrowLeftCircleIcon } from "@heroicons/react/20/solid";
 import Link from "next/link";
 
 const styleRandom = [
-  "",
   "flat",
   "hand-drawn",
   "outline",
@@ -25,10 +24,8 @@ const DetailsProduct = ({ params }) => {
 
   const [card, setCard] = useState({});
   const [isPending, setIsPending] = useState(true);
-  const [error, setError] = useState(null);
   const [stateEdit, setStateEdit] = useState(false);
-  const numbers = Math.floor(Math.random() * 5) + 1;
-
+  const [result, setResult] = useState([]);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -36,176 +33,157 @@ const DetailsProduct = ({ params }) => {
     imageAlt: "",
   });
 
-  console.log('styleRandom[numbers]',styleRandom[numbers]);
-  
+  const randomStyle =
+    styleRandom[Math.floor(Math.random() * styleRandom.length)];
 
   useEffect(() => {
-    const result = JSON.parse(localStorage.getItem("carte"));
-    if (result) {
-      const currentData = result.find((item) => item.id === idCard);
-      if (currentData) {
-        setFormData({
-          title: currentData.title,
-          description: currentData.description,
-          imageSrc: `https://doodleipsum.com/500x500/${styleRandom[numbers]}`,
-          imageAlt: currentData.imageAlt,
-        });
-        setCard(currentData);
-        setIsPending(false);
-      }
+    const storedData = JSON.parse(localStorage.getItem("carte")) || [];
+    setResult(storedData);
+
+    const currentData = storedData.find((item) => item.id === idCard);
+    if (currentData) {
+      setFormData({
+        title: currentData.title,
+        description: currentData.description,
+        imageSrc: `https://doodleipsum.com/500x500/${randomStyle}`,
+        imageAlt: currentData.imageAlt || "Default Image",
+      });
+      setCard(currentData);
     }
+    setIsPending(false);
   }, [idCard]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+    const updatedResult = result.map((item) =>
+      item.id === idCard ? { ...item, ...formData } : item
+    );
 
-    const updatedFormData = {
-      ...formData,
-      imageSrc: `https://doodleipsum.com/500x500/${styleRandom[idCard]}`,
-      imageAlt: formData.imageAlt || "default alt text",
-    };
-
-    fetch(`http://localhost:8000/cards/${idCard}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedFormData),
-    })
-      .then((response) => response.json())
-      .then((updatedCard) => {
-        setCard(updatedCard);
-        setStateEdit(false);
-      })
-      .catch((error) => console.error("Error:", error));
-
-    setFormData(updatedFormData);
+    localStorage.setItem("carte", JSON.stringify(updatedResult));
+    setResult(updatedResult);
+    setCard({ ...card, ...formData });
+    setStateEdit(false);
   };
 
   const handleDelete = () => {
-    fetch(`http://localhost:8000/cards/${idCard}`, {
-      method: "DELETE",
-    })
-      .then(() => {
-        router.push("/cards");
-      })
-      .catch((error) => console.error("Error:", error));
+    const updatedResult = result.filter((item) => item.id !== idCard);
+    localStorage.setItem("carte", JSON.stringify(updatedResult));
+    router.push("/cards");
   };
 
-  const handleEdit = () => {
-    setStateEdit(true);
-  };
+  const handleEdit = () => setStateEdit(true);
 
   if (isPending) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
+    return <div className="text-center py-10">Loading...</div>;
   }
 
   return (
-    <>
-      <div className="max-w-sm w-1/3 mx-auto my-52 bg-gradient-to-r from-gray-00 lg:max-w-full lg:flex border border-indigo-600 rounded-md">
-        <Link href="/cards">
-          <ArrowLeftCircleIcon className="absolute w-10 mx-auto -mt-12 cursor-pointer transition ease-in-out delay-150 hover:-translate-y-1" />
-        </Link>
-        <div className="w-full">
+    <div className="max-w-md mx-auto sm:max-w-xl lg:max-w-4xl mt-10">
+      <Link href="/cards" aria-label="Go back">
+        <ArrowLeftCircleIcon
+          className="w-10 text-gray-500 hover:text-gray-700 cursor-pointer transition ease-in-out delay-150  hover:-translate-x-1 mb-4"
+          aria-hidden="true"
+        />
+      </Link>
+      <div className="p-4 max-w-md mx-auto sm:max-w-xl lg:max-w-4xl bg-white rounded-lg border border-indigo-600">
+        <div className="space-y-4 sm:space-y-0 sm:flex sm:space-x-6">
           <Image
-            src={card.imageSrc || "/default-image.jpg"} // Default image fallback
-            alt={card.imageAlt || "Card image"} // Default alt text
+            src={formData.imageSrc}
+            alt={formData.imageAlt}
             width={500}
             height={500}
-            priority
+            className="w-full sm:w-1/2 object-cover rounded"
+            onError={(e) => (e.target.src = "/default-image.jpg")}
           />
-        </div>
-        <div className="p-4 flex flex-col justify-between">
-          {!stateEdit ? (
-            <>
-              <div className="text-gray-700 font-bold text-xl mb-2">
-                {card.title}
+          <div className="sm:flex-1">
+            {!stateEdit ? (
+              <div className="h-full flex flex-col  justify-evenly">
+                <h2 className="text-3xl font-bold text-gray-800 mb-4">
+                  {card.title}
+                </h2>
+                <p className="text-gray-600 mb-6 text-xl">{card.description}</p>
+                <div className="flex flex-wrap gap-4 justify-center">
+                  <button
+                    onClick={handleEdit}
+                    className="flex-1 p-4 bg-indigo-500 text-white rounded hover:bg-indigo-600 text-sm sm:text-base"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    className="flex-1 p-4 bg-red-500 text-white rounded hover:bg-red-600 text-sm sm:text-base"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-              <p className="text-gray-500 text-base">{card.description}</p>
-              <div className="py-3 sm:flex sm:flex-row sm:px-0 gap-8">
-                <button
-                  onClick={handleEdit}
-                  className="mt-3 inline-flex w-full justify-center rounded-md bg-indigo-500 px-8 py-2 text-sm font-semibold text-white hover:bg-indigo-600 sm:mt-0 sm:w-auto"
-                >
-                  Editez
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="mt-3 inline-flex w-full justify-center rounded-md bg-gray-200 px-8 py-2 text-sm font-semibold text-red-700 hover:bg-red-700 hover:text-red-200 sm:mt-0 sm:w-auto"
-                >
-                  Supprimer
-                </button>
-              </div>
-            </>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <label
-                htmlFor="title"
-                className="block text-sm font-medium leading-6 text-gray-900"
+            ) : (
+              <form
+                onSubmit={handleSubmit}
+                className="h-full flex flex-col  justify-evenly"
               >
-                Titre
-              </label>
-              <div className="mt-2">
-                <input
-                  id="title"
-                  name="title"
-                  type="text"
-                  value={formData.title}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 px-3 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-500 block w-full rounded-md sm:text-sm"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="description"
-                  className="block text-sm font-medium leading-6 text-gray-900"
-                >
-                  Description
-                </label>
-                <div className="mt-2">
+                <div>
+                  <label
+                    htmlFor="title"
+                    className="block text-gray-700 font-medium"
+                  >
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    required
+                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="description"
+                    className="block text-gray-700 font-medium"
+                  >
+                    Description
+                  </label>
                   <textarea
                     id="description"
                     name="description"
                     value={formData.description}
                     onChange={handleChange}
                     required
-                    className="mt-1 px-3 py-2 bg-white border shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-sky-500 block w-full rounded-md sm:text-sm"
-                  />
+                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  ></textarea>
                 </div>
-              </div>
-              <div className="py-3 sm:flex sm:flex-row sm:px-0 gap-8">
-                <button
-                  type="submit"
-                  className="mt-3 inline-flex w-full justify-center rounded-md bg-indigo-500 px-8 py-2 text-sm font-semibold text-white hover:bg-indigo-600 sm:mt-0 sm:w-auto"
-                >
-                  Enregistrer
-                </button>
-                <button
-                  onClick={() => setStateEdit(false)}
-                  className="mt-3 inline-flex w-full bg-gray-200 rounded-md px-8 py-2 text-sm font-semibold hover:bg-gray-300 sm:mt-0 sm:w-auto"
-                >
-                  Annuler
-                </button>
-              </div>
-            </form>
-          )}
+                <div className="flex flex-wrap gap-4 justify-center">
+                  <button
+                    type="submit"
+                    className="flex-1 p-4 bg-indigo-500 text-white rounded hover:bg-indigo-600 text-sm sm:text-base"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStateEdit(false)}
+                    className="flex-1 p-4 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm sm:text-base"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

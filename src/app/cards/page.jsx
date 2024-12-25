@@ -18,6 +18,8 @@ const styleRandom = [
   "avatar-4",
   "avatar-5",
 ];
+const numbers = Math.floor(Math.random() * 5) + 1;
+
 
 export default function CardView() {
   const [open, setOpen] = useState(false);
